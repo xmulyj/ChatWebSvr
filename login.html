@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+.txt{text-align:right}
+</style>
+
+
+
+
+<script type="text/javascript">
+var xmlobj;
+function CreateXMLHttpRequest()
+{
+	if(window.ActiveXObject)
+	{
+		try
+		{
+			xmlobj = new ActiveXObject("Msxml2.XMLHTTP");
+		} 
+		catch (e) 
+		{
+			try 
+			{
+	     			xmlobj = new ActiveXObject("Microsoft.XMLHTTP");
+			}
+			catch (E)
+			{
+				xmlobj = false;
+			}
+		}
+    	}
+    	else if(window.XMLHttpRequest)
+    	{
+		xmlobj = new XMLHttpRequest();
+    	}
+    	else
+    	{
+		xmlobj = false;
+    	}
+}
+function OnLoginRsp()
+{
+	if (xmlobj.readyState == 4)
+	{
+		var rsp = JSON.parse(xmlobj.responseText);
+		if(rsp.ret == 0)
+		{
+			window.location.href='chat.html?uid=' +rsp.head.uid +'&sid=' +rsp.head.sid;			
+		}
+		else
+		{
+			alert("Login Failed.ErrMsg=" + rsp.errmsg);
+		}
+	}
+	else
+	{
+		alert("Login Failed.State=" + xmlobj.readyState);
+	}
+}
+
+function OnLogin()
+{
+	var account = document.getElementById("account").value;
+	var passwd = document.getElementById("passwd").value;
+	if(account.length==0 || passwd.lenght==0)
+	{
+		alert("[帐号/密码/]不能为空!");
+	}
+	
+	var cmd=0x40004;
+	var req='{"head":{"apptype":0,"uid":0,"cmd":' +cmd+'},"account":"' +account+ '","passwd":"' +passwd+ '"}';
+	
+	CreateXMLHttpRequest();
+	if(xmlobj == false)
+	{
+		alert("XMLHttpRequest obj is null!");
+		return ;
+	}
+	
+	xmlobj.open("POST", "http://127.0.0.1:2500", false);
+	xmlobj.onreadystatechange = OnLoginRsp;
+	xmlobj.send(req);
+		
+}
+</script>
+
+</head>
+<body>
+<center>
+
+<table>
+<tr>
+<td class="txt">帐号:</td><td><input id="account" type="text"/></td>
+</tr>
+<tr>
+<td class="txt">密码:</td><td><input id="passwd" type="text"/></td>
+</tr>
+<tr>
+<td></td><td><button style="width:100%" onclick="OnLogin()">登录</button></td>
+</tr>
+</table>
+
+</center>
+</body>
+
+
+
+<script type="text/javascript"> 
+UrlParm = function() 
+{ // url参数    
+  var data, index;    
+  (function init() 
+  {    
+    data = [];    
+    index = {};    
+    var u = window.location.search.substr(1);    
+    if (u != '') 
+    {    
+      var parms = decodeURIComponent(u).split('&');    
+      for (var i = 0, len = parms.length; i < len; i++) 
+      {    
+        if (parms[i] != '') 
+        {    
+          var p = parms[i].split("=");    
+          if (p.length == 1 || (p.length == 2 && p[1] == '')) {// p | p=    
+            data.push(['']);    
+            index[p[0]] = data.length - 1;    
+          } else if (typeof(p[0]) == 'undefined' || p[0] == '') { // =c | =    
+            data[0] = [p[1]];    
+          } else if (typeof(index[p[0]]) == 'undefined') { // c=aaa    
+            data.push([p[1]]);    
+            index[p[0]] = data.length - 1;    
+          } else {// c=aaa    
+            data[index[p[0]]].push(p[1]);    
+          }    
+        }    
+      }    
+    }    
+  })();    
+  return {    
+    // 获得参数,类似request.getParameter()    
+    parm : function(o) 
+    { // o: 参数名或者参数次序    
+      try {    
+        return (typeof(o) == 'number' ? data[o][0] : data[index[o]][0]);    
+      } catch (e) {    
+      }    
+    },    
+    //获得参数组, 类似request.getParameterValues()    
+    parmValues : function(o) { //  o: 参数名或者参数次序    
+      try {    
+        return (typeof(o) == 'number' ? data[o] : data[index[o]]);    
+      } catch (e) {}    
+    },    
+    //是否含有parmName参数    
+    hasParm : function(parmName) {    
+      return typeof(parmName) == 'string' ? typeof(index[parmName]) != 'undefined' : false;    
+    },    
+    // 获得参数Map ,类似request.getParameterMap()    
+    parmMap : function() {    
+      var map = {};    
+      try {    
+        for (var p in index) {  map[p] = data[index[p]];  }    
+      } catch (e) {}    
+      return map;    
+    }    
+  }    
+}(); 
+
+
+//填充帐号
+var account=UrlParm.parm("account");  
+if(typeof(account)!="undefined" && account.length > 0)
+{
+	document.getElementById("account").value = account;
+} 
+</script>
+
+</html>
